@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using Javax.Security.Auth;
 using MauiAppTempoAgora.Models;
 using MauiAppTempoAgora.Services;
 
@@ -32,7 +31,8 @@ namespace MauiAppTempoAgora
 
                         lbl_res.Text = dados_previsao;
 
-                        string mapa = $"type=map&location=coordinates&metricRain=mm&metricTemp=°C" +
+                        string mapa = $"https://embed.windy.com/embed.html?" +
+                        $"type=map&location=coordinates&metricRain=mm&metricTemp=°C" +
                         $"&metricWind=km/h&zoom=5&overlay=wind&product=ecmwf&level=surface" +
                         $"&lat={t.lat.ToString().Replace(",", ".")}&lon=" +
                         $"{t.lon.ToString().Replace(",", ".")}";
@@ -89,9 +89,9 @@ namespace MauiAppTempoAgora
             {
                 await DisplayAlert("Erro: Dispositivo não suporta", fnsEx.Message, "OK");
             }
-            catch (FeatureNotSupportedException fnsEx)
+            catch (FeatureNotEnabledException fneEx)
             {
-                await DisplayAlert("Erro: Localização Desabilitada", fnsEx.Message, "OK");
+                await DisplayAlert("Erro: Localização Desabilitada", fneEx.Message, "OK");
             }
             catch (PermissionException pEx)
             {
@@ -101,15 +101,28 @@ namespace MauiAppTempoAgora
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
+        }
 
-            Private async async void Getcidade(double lat, double lon)
+        private async void GetCidade(double lat, double lon)
+        {
+            try
             {
-                try
+                IEnumerable<Placemark> places = await Geocoding.Default.GetPlacemarksAsync(lat, lon);
+
+                Placemark? place = places.FirstOrDefault();
+
+                if (place != null)
                 {
-                    IEnumerable<Placemark> places = await 
+                    txt_cidade.Text = place.Locality;
                 }
             }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Erro: Obtenção do nome da cidade", ex.Message, "OK");
+            }
+        }
 
     }
 
 }
+
